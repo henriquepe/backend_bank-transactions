@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
+import UpdateTransactionService from '../services/UpdateTransactionsService';
 
 const transactionsRouter = Router();
 
@@ -42,15 +43,18 @@ transactionsRouter.put('/:id', (request, response) => {
 	const { id } = request.params;
 	const { title, value, type } = request.body;
 
-	const transactionFounded = transactionsRepository.findTransactionById({ id });
+	const updateTransaction = new UpdateTransactionService(
+		transactionsRepository,
+	);
 
-	const updatedTransaction = transactionsRepository.update(transactionFounded, {
+	const transactionUpdated = updateTransaction.execute({
+		id,
 		title,
 		value,
 		type,
 	});
 
-	return response.json(updatedTransaction);
+	return response.json(transactionUpdated);
 });
 
 export default transactionsRouter;

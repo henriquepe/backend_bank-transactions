@@ -6,6 +6,11 @@ interface Request {
 	type: 'income' | 'outcome';
 }
 
+interface RequestForUpdate {
+	index: number;
+	transaction: Transaction;
+}
+
 interface Balance {
 	income: number;
 	outcome: number;
@@ -28,6 +33,7 @@ export default class TransactionsRepository {
 
 	public all(): Transaction[] {
 		const transactions = this.transactionsRepository;
+		console.log(transactions);
 
 		return transactions;
 	}
@@ -70,24 +76,19 @@ export default class TransactionsRepository {
 		return balance;
 	}
 
-	public findTransactionByIdAndUpdate(
-		{ title, value, type }: Request,
-		{ id }: Omit<transactionUpdateOrDelete, 'title' | 'value' | 'type'>,
-	): number | null {
-		const findTransactionIndexById = this.transactionsRepository.findIndex(
+	public findIndex({
+		id,
+	}: Omit<transactionUpdateOrDelete, 'title' | 'value' | 'type'>):
+		| number
+		| null {
+		const index = this.transactionsRepository.findIndex(
 			transaction => transaction.id === id,
 		);
 
-		if (!findTransactionIndexById)
-			throw Error('this transaction do not exists');
+		return index || null;
+	}
 
-		this.transactionsRepository.splice(findTransactionIndexById);
-
-		const updatedTransaction = {
-			id,
-			title,
-			value,
-			type,
-		};
+	public update({ index, transaction }: RequestForUpdate): void {
+		this.transactionsRepository.splice(index, 1, transaction);
 	}
 }
