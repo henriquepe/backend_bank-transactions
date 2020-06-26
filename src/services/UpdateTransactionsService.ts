@@ -25,9 +25,7 @@ export default class UpdateTransactionsService {
 			id,
 		});
 
-		console.log(findTransactionIndexById);
-
-		if (findTransactionIndexById === null) {
+		if (findTransactionIndexById === -1) {
 			throw Error('this transaction do not exists');
 		}
 

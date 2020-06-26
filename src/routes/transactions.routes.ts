@@ -39,22 +39,38 @@ transactionsRouter.post('/', (request, response) => {
 	}
 });
 
-transactionsRouter.put('/:id', (request, response) => {
-	const { id } = request.params;
-	const { title, value, type } = request.body;
+transactionsRouter.put(`/:id`, (request, response) => {
+	try {
+		const { id } = request.params;
+		const { title, value, type } = request.body;
 
-	const updateTransaction = new UpdateTransactionService(
-		transactionsRepository,
-	);
+		const updateTransaction = new UpdateTransactionService(
+			transactionsRepository,
+		);
 
-	const transactionUpdated = updateTransaction.execute({
-		id,
-		title,
-		value,
-		type,
-	});
+		const transactionUpdated = updateTransaction.execute({
+			id,
+			title,
+			value,
+			type,
+		});
 
-	return response.json(transactionUpdated);
+		return response.json(transactionUpdated);
+	} catch (err) {
+		return response.status(400).json({ message: `${err.message}` });
+	}
+});
+
+transactionsRouter.delete('/:id', (request, response) => {
+	try {
+		const { id } = request.params;
+
+		const transactionDeleted = transactionsRepository.delete({ id });
+
+		return response.json(transactionDeleted);
+	} catch (err) {
+		return response.status(404).json({ message: `${err.message}` });
+	}
 });
 
 export default transactionsRouter;

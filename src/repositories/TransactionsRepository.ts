@@ -33,7 +33,6 @@ export default class TransactionsRepository {
 
 	public all(): Transaction[] {
 		const transactions = this.transactionsRepository;
-		console.log(transactions);
 
 		return transactions;
 	}
@@ -78,17 +77,36 @@ export default class TransactionsRepository {
 
 	public findIndex({
 		id,
-	}: Omit<transactionUpdateOrDelete, 'title' | 'value' | 'type'>):
-		| number
-		| null {
+	}: Omit<transactionUpdateOrDelete, 'title' | 'value' | 'type'>): number {
 		const index = this.transactionsRepository.findIndex(
 			transaction => transaction.id === id,
 		);
 
-		return index || null;
+		return index;
 	}
 
-	public update({ index, transaction }: RequestForUpdate): void {
+	public update({ index, transaction }: RequestForUpdate): Transaction {
 		this.transactionsRepository.splice(index, 1, transaction);
+
+		return transaction;
+	}
+
+	public delete({
+		id,
+	}: Omit<transactionUpdateOrDelete, 'title' | 'value' | 'type'>):
+		| Transaction
+		| undefined {
+		const transactionIndexToDelete = this.findIndex({ id });
+
+		if (transactionIndexToDelete === -1)
+			throw Error('This transaction can not be deleted! (not found)');
+
+		const transactionToDelete = this.transactionsRepository.find(
+			transaction => transaction.id === id,
+		);
+
+		this.transactionsRepository.splice(transactionIndexToDelete, 1);
+
+		return transactionToDelete;
 	}
 }
