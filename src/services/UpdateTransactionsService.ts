@@ -15,11 +15,8 @@ export default class UpdateTransactionsService {
 		this.transactionsRepository = transactionsRepository;
 	}
 
-	public execute({ id, title, value, type }: Request): Transaction {
+	public execute({ id, title, value = 0, type }: Request): Transaction {
 		const balance = this.transactionsRepository.getBalance();
-
-		if (type === 'outcome' && value > balance.total)
-			throw Error('this is a invalid outcome transaction');
 
 		const findTransactionIndexById = this.transactionsRepository.findIndex({
 			id,
@@ -29,6 +26,13 @@ export default class UpdateTransactionsService {
 			throw Error('this transaction do not exists');
 		}
 
+		const foundedTransaction = this.transactionsRepository.findTransaction({
+			index: findTransactionIndexById,
+		});
+
+		const newIncome = balance.income - foundedTransaction.value;
+		const newOutcome = balance.outcome + value;
+
 		const updatedTransaction = {
 			id,
 			title,
@@ -36,10 +40,47 @@ export default class UpdateTransactionsService {
 			type,
 		};
 
-		this.transactionsRepository.update({
-			index: findTransactionIndexById,
-			transaction: updatedTransaction,
-		});
+		if (foundedTransaction.type === 'income' && type === 'income') {
+			this.transactionsRepository.update({
+				index: findTransactionIndexById,
+				transaction: updatedTransaction,
+			});
+
+			return updatedTransaction;
+		}
+
+		if (foundedTransaction.type === 'income' && type === 'outcome') {
+			if (newOutcome <= newIncome) {
+				this.transactionsRepository.update({
+					index: findTransactionIndexById,
+					transaction: updatedTransaction,
+				});
+				return updatedTransaction;
+			}
+
+			throw Error('This is a invalid outcome transaction');
+		}
+
+		if (foundedTransaction.type === 'outcome' && type === 'income') {
+			this.transactionsRepository.update({
+				index: findTransactionIndexById,
+				transaction: updatedTransaction,
+			});
+			return updatedTransaction;
+		}
+
+		if (foundedTransaction.type === 'outcome' && type === 'outcome') {
+			if (value <= balance.income) {
+				this.transactionsRepository.update({
+					index: findTransactionIndexById,
+					transaction: updatedTransaction,
+				});
+				return updatedTransaction;
+			}
+			throw Error(
+				'You do not have a valid balance, please review your incomes and outcomes.',
+			);
+		}
 
 		return updatedTransaction;
 	}

@@ -85,6 +85,14 @@ export default class TransactionsRepository {
 		return index;
 	}
 
+	public findTransaction({
+		index,
+	}: Omit<RequestForUpdate, 'transaction'>): Transaction {
+		const transaction = this.transactionsRepository[index];
+
+		return transaction;
+	}
+
 	public update({ index, transaction }: RequestForUpdate): Transaction {
 		this.transactionsRepository.splice(index, 1, transaction);
 
@@ -93,9 +101,10 @@ export default class TransactionsRepository {
 
 	public delete({
 		id,
-	}: Omit<transactionUpdateOrDelete, 'title' | 'value' | 'type'>):
-		| Transaction
-		| undefined {
+	}: Omit<
+		transactionUpdateOrDelete,
+		'title' | 'value' | 'type'
+	>): Transaction | null {
 		const transactionIndexToDelete = this.findIndex({ id });
 
 		if (transactionIndexToDelete === -1)
@@ -107,6 +116,10 @@ export default class TransactionsRepository {
 
 		this.transactionsRepository.splice(transactionIndexToDelete, 1);
 
-		return transactionToDelete;
+		return transactionToDelete || null;
+	}
+
+	public getRepositoryLength(): number {
+		return this.transactionsRepository.length;
 	}
 }
